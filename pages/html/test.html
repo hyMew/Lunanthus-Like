@@ -1,0 +1,28 @@
+<div id="test">
+    <h1>Test</h1>
+    <p class="red">Testですよ</p>
+
+  <div>
+    <p>↓特に作動しません。</p>
+    <button class="btn">test</button>
+  </div>
+
+  <div class="whats">
+    <h3>Q.ちなみにどこいじったの？</h3>
+    <div>
+      Lunanthusのコアとなる<strong>router.js</strong>をいじってます。<br>
+      オリジナルの8行目からある<span class="red">if (route) {</span>から色々追加したり修正してます。<br>
+    </div>
+    <h3>Q.なぜそんなことを？</h3>
+    <div>
+      そうしないと<span class="red">if (route.script) {</span>のエリアで毎回<strong>document.createElement("script");</strong>が発生してしまうからです。
+    </div>
+  </div>
+
+    <p><a href="/">Go to Home</a></p>
+    <p><a href="/about">Go to About</a></p>
+    <p><a href="/test">Go to Test</a></p>
+</div>
+<style>
+  .red{color:red;}
+</style>

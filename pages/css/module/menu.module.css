@@ -1,0 +1,40 @@
+details.menu {
+    position: fixed;
+    right: 1rem;
+    top: 1rem;
+    display: flex;
+    flex-direction: row-reverse;
+}
+details.menu > summary.menu-btn {
+    display: block;
+    padding: 0;
+    text-align: center;
+    border: none;
+}
+details.menu > summary.menu-btn > p {
+    padding: .5rem;
+    border: 1px solid #d2beff;
+    background: #ccc;
+    position: relative;
+}
+details.menu > summary.menu-btn > p::before {
+    content: "-";
+    width: 2vw;
+    height: 2vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+details.menu[open] > summary.menu-btn > p::before {
+    content: "×";
+}
+details.menu > div {
+    padding: 0 .5rem;
+    background: #fff;
+    height: 100%;
+}
+details.menu ul, details.menu li {
+    list-style: none;
+    margin-inline-start: 0;
+    padding-left: 0;
+}
