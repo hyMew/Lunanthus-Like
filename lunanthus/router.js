@@ -8,26 +8,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (route) {
             const pathName = route.path.slice(1);
 
-        const getLastModifiedDate = async (route) => {
-            try {
-                const response = await fetch(route.file, { method: 'HEAD' }); // 本文不要ならHEADで高速化
-                const lastModified = response.headers.get('Last-Modified');
+            const getLastModifiedDate = async (route) => {
+                try {
+                    const response = await fetch(route.file, { method: 'HEAD' }); // 本文不要ならHEADで高速化
+                    const lastModified = response.headers.get('Last-Modified');
 
-                if (lastModified) {
-                    const date = new Date(lastModified);
-                    // YYYYMMDDHHMMSS 形式
-                    return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
+                    if (lastModified) {
+                        const date = new Date(lastModified);
+                        // YYYYMMDDHHMMSS 形式
+                        return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
+                    }
+                } catch (error) {
+                    // 何も処理せずフォールバックへ
                 }
-            } catch (error) {
-                // 何も処理せずフォールバックへ
-            }
 
-            // 取得失敗またはヘッダーなしの場合：現在時刻
-            const now = new Date();
-            return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-        };
+                // 取得失敗またはヘッダーなしの場合：現在時刻
+                const now = new Date();
+                return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+            };
 
-        const lastModifiedDate = await getLastModifiedDate(route);
+            const lastModifiedDate = await getLastModifiedDate(route);
 
             const response = await fetch(route.file+`?t=${lastModifiedDate}`);
 
@@ -51,7 +51,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
             if (route.style) {
-                const existingStyle = document.head.querySelector(`link[title="Style-${pathName}"]`);
+                //const existingStyle = document.head.querySelector(`link[title="Style-${pathName}"]`);
+                const existingStyle = document.head.querySelector(`link[title="Style"]`);
                 if (existingStyle) {
                     existingStyle.remove();
                 }
@@ -60,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 style.rel = ("stylesheet");
                 style.href = `${route.style}?t=${Date.now()}`;
                 style.setAttribute("type","text/css");
-                style.setAttribute("title",`Style-${pathName}`);
+                style.setAttribute("title",`Style`);
                 document.head.appendChild(style);
             } else {
                 const existingStyle = document.head.querySelector(`link[rel="stylesheet"]`);
