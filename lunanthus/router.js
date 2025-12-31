@@ -1,85 +1,83 @@
-document.addEventListener("DOMContentLoaded", async () => {
+$(document).ready(async function () {
     const routes = await import("/lunanthus/routes.js");
-    const app = document.getElementById("app");
+    const $app = $("#app");
 
     const renderPage = async () => {
         const path = location.pathname;
         const route = routes.default.find(r => r.path === path);
+
         if (route) {
             const pathName = route.path.slice(1);
 
+            // Last-Modified を取得する関数
             const getLastModifiedDate = async (route) => {
                 try {
-                    const response = await fetch(route.file, { method: 'HEAD' }); // 本文不要ならHEADで高速化
+                    const response = await fetch(route.file, { method: 'HEAD' });
                     const lastModified = response.headers.get('Last-Modified');
 
                     if (lastModified) {
                         const date = new Date(lastModified);
-                        // YYYYMMDDHHMMSS 形式
                         return `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}`;
                     }
                 } catch (error) {
-                    // 何も処理せずフォールバックへ
+                    // エラー時は現在時刻を返す
                 }
 
-                // 取得失敗またはヘッダーなしの場合：現在時刻
                 const now = new Date();
                 return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
             };
 
             const lastModifiedDate = await getLastModifiedDate(route);
 
-            const response = await fetch(route.file+`?t=${lastModifiedDate}`);
+            // HTMLの取得と挿入
+            const html = await fetch(route.file + `?t=${lastModifiedDate}`).then(res => res.text());
+            $app.html(html);
 
-            const html = await response.text();
-            app.innerHTML = html;
+            // スクリプトの動的読み込み（type="module" 対応）
+            $("script[type='module']").remove();
 
             if (route.script) {
-                const existingScript = document.querySelector(`script[type="module"]`);
-                if (existingScript) {
-                    existingScript.remove();
-                }
-
-                const script = document.createElement("script");
-                script.src = route.script + `?t=${Date.now()}`;
-                script.type = "module";
-                document.body.appendChild(script);
-            } else {
-                const existingScript = document.querySelector(`script[type="module"]`);
-                if (existingScript) {
-                    existingScript.remove();
-                }
+                const $script = $("<script>").attr({
+                    src: route.script + `?t=${Date.now()}`,
+                    type: "module",
+                    charset: "UTF-8"
+                });
+                $("body").append($script);
             }
+
+            // スタイルシートの動的読み込み
+            // title="Style" で識別（元のコードに合わせて統一）
+            $("link[rel='stylesheet'][title='Style']").remove();
+
             if (route.style) {
-                //const existingStyle = document.head.querySelector(`link[title="Style-${pathName}"]`);
-                const existingStyle = document.head.querySelector(`link[title="Style"]`);
-                if (existingStyle) {
-                    existingStyle.remove();
-                }
-
-                const style = document.createElement("link");
-                style.rel = ("stylesheet");
-                style.href = `${route.style}?t=${Date.now()}`;
-                style.setAttribute("type","text/css");
-                style.setAttribute("title",`Style`);
-                document.head.appendChild(style);
+                const $style = $("<link>").attr({
+                    rel: "stylesheet",
+                    href: `${route.style}?t=${Date.now()}`,
+                    type: "text/css",
+                    title: "Style"
+                });
+                $("head").append($style);
             } else {
-                const existingStyle = document.head.querySelector(`link[rel="stylesheet"]`);
-                if (existingStyle) {
-                    existingStyle.remove();
-                }
+                // route.style が無い場合はすべてのstylesheetを削除（元の動作に合わせる）
+                $("link[rel='stylesheet']").remove();
             }
+
         } else {
-            app.innerHTML = "<h1>404<br>Not Found</h1>";
+            $app.html("<h1>404<br>Not Found</h1>");
         }
     };
 
-    window.addEventListener("popstate", renderPage);
+    // popstate（ブラウザの戻る・進む）で再描画
+    $(window).on("popstate", renderPage);
 
-    document.body.addEventListener("click", (event) => {
-        const target = event.target.closest("a");
-        if (target && target.href && target.origin === location.origin) {
-            const pathname = new URL(target.href).pathname;
+    // 内部リンクのクリックをインターセプト（SPA風ナビゲーション）
+    $("body").on("click", "a", function (event) {
+        const $target = $(this);
+        const href = $target.attr("href");
+
+        if (href && $target.prop("origin") === location.origin) {
+            const pathname = new URL(href, location.origin).pathname;
+
             if (routes.default.some(r => r.path === pathname)) {
                 event.preventDefault();
                 history.pushState(null, "", pathname);
@@ -88,5 +86,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    // 初回描画
     renderPage();
 });
